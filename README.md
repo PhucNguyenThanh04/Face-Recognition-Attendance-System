@@ -161,7 +161,7 @@ FaceMatching/
 `-- README.md
 ```
 
-Runtime/generated folders such as `postgres_data/`, `storage/`, `node_modules/`, `dist/`, `uploads/`, caches and model binaries should not be committed to Git.
+Các thư mục runtime/generated như `postgres_data/`, `storage/`, `node_modules/`, `dist/`, `uploads/`, cache và các file model binary không nên được commit lên Git.
 
 
 
