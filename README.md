@@ -62,7 +62,7 @@ cd Face-Recognition-Attendance-System
 
 2. Tạo file môi trường cho từng service:
 
-Tạo thủ công `api-service/.env` và `attendance-service/.env` dựa trên các biến trong `docker-compose.yml`. Các biến quan trọng gồm database/Redis URL, API key giữa hai service, đường dẫn model weights, Qdrant URL và `STREAM_URL`.
+Tạo thủ công `api-service/.env` và `attendance-service/.env` dựa trên các biến trong `docker-compose.yml` và .env.example
 
 3. Build và chạy toàn bộ service:
 
@@ -115,4 +115,59 @@ curl http://localhost:8000/health
 curl http://localhost:8001/health
 ```
 
+## 8. Project Structure
 
+```text
+FaceMatching/
+|-- api-service/
+|   |-- src/
+|   |   |-- api/                 # REST API modules: auth, staff, shifts, attendance, face profiles
+|   |   |-- core/                # Config, database, cache, middleware, bootstrap admin
+|   |   `-- utils/               # Shared backend utilities
+|   |-- alembic/                 # Database migration scripts
+|   |-- docs/                    # Database schema and backend documentation
+|   |-- Dockerfile
+|   |-- requirements.txt
+|   `-- pyproject.toml
+|
+|-- attendance-service/
+|   |-- app/
+|   |   |-- api/                 # AI service API endpoints
+|   |   |-- core/
+|   |   |   |-- ml/              # Detector, aligner, embedder, anti-spoofing wrappers
+|   |   |   |-- pipeline/        # Real-time attendance recognition pipeline
+|   |   |   |-- vector_db/       # Qdrant vector search/repository layer
+|   |   |   |-- clients/         # API service integration clients
+|   |   |   `-- configs/         # Attendance service settings
+|   |   `-- utils/
+|   |-- Silent-Face-Anti-Spoofing/ # Liveness detection model/source
+|   |-- weights/                 # Local model weights
+|   |-- Dockerfile
+|   |-- requirements.txt
+|   `-- pyproject.toml
+|
+|-- web-dashboard/               # Admin dashboard frontend
+|-- visualize-attendance/        # Real-time attendance display screen
+|-- tool/
+|   `-- fake_camera_server.py    # Fake MJPEG camera stream for testing
+|
+|-- docs/
+|   |-- arcitecture.png          # System architecture diagram
+|   `-- pipeline.png             # Face recognition pipeline diagram
+|
+|-- docker-compose.yml           # Main local orchestration
+|-- docker-compose.gpu.yml       # GPU-specific compose override
+|-- .gitignore
+`-- README.md
+```
+
+Runtime/generated folders such as `postgres_data/`, `storage/`, `node_modules/`, `dist/`, `uploads/`, caches and model binaries should not be committed to Git.
+
+
+
+## Acknowledgements
+
+- **Liveness Detection**: Sử dụng model Silent-Face-Anti-Spoofing từ
+  [minivision-ai/Silent-Face-Anti-Spoofing](https://github.com/minivision-ai/Silent-Face-Anti-Spoofing),
+  phát hành theo Apache License 2.0. Model được dùng nguyên bản để phát hiện giả mạo khuôn mặt (ảnh in,
+  màn hình điện thoại, mặt nạ...) trước bước nhận diện.
