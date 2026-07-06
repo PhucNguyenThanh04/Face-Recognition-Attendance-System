@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "api-service"
+version = "0.1.0"
+description = "Face Attendance API service"
+authors = ["PhucNguyenThanh04 <thanhphucnguyen101204@gmail.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+fastapi = "0.115.6"
+uvicorn = {version = "0.34.0", extras = ["standard"]}
+python-multipart = "0.0.20"
+pydantic = "2.10.4"
+pydantic-settings = "2.7.0"
+python-dotenv = "1.0.1"
+email-validator = "2.2.0"
+SQLAlchemy = "2.0.36"
+asyncpg = "0.30.0"
+psycopg2-binary = "2.9.10"
+alembic = "1.14.0"
+redis = "5.2.1"
+httpx = "0.28.1"
+python-jose = {version = "3.3.0", extras = ["cryptography"]}
+PyJWT = "2.10.1"
+passlib = {version = "1.7.4", extras = ["bcrypt"]}
+bcrypt = "4.0.1"
+fastapi-mail = "1.4.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "8.3.4"
+pytest-asyncio = "0.25.0"
+ruff = "0.8.4"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
