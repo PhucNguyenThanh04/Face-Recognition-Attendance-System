@@ -18,8 +18,6 @@ Desktop.ini
 .env.*
 **/.env
 **/.env.*
-!.env.example
-!**/.env.example
 !.env.template
 !**/.env.template
 
