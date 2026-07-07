@@ -62,7 +62,7 @@ cd Face-Recognition-Attendance-System
 
 2. Tạo file môi trường cho từng service:
 
-Tạo thủ công `api-service/.env` và `attendance-service/.env` dựa trên các biến trong `docker-compose.yml` và .env.example
+Tạo thủ công `api-service/.env` và `attendance-service/.env` dựa trên các biến trong `docker-compose.yml` và `.env.example`
 
 3. Build và chạy toàn bộ service:
 
