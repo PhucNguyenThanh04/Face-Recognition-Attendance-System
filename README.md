@@ -1,76 +1,59 @@
-<div align="center">
-
 # 🎯 Face Recognition Attendance System
 
-**Hệ thống điểm danh tự động bằng nhận diện khuôn mặt real-time, tích hợp anti-spoofing và vector search.**
+[![Python](https://img.shields.io/badge/Python-≥3.10-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?style=flat&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-DC244C?style=flat&logo=qdrant&logoColor=white)](https://qdrant.tech/)
+[![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 
-[![Python](https://img.shields.io/badge/Python-≥3.10-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-CUDA-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+Hệ thống điểm danh/chấm công tự động bằng nhận diện khuôn mặt real-time: phát hiện khuôn mặt, chống giả mạo bằng liveness detection, trích xuất embedding và đối sánh với vector database. Hệ thống dùng FastAPI, PyTorch/ONNX, Qdrant, PostgreSQL, Redis và React/Vite.
 
-[Demo Video](https://youtu.be/BtBY9D3Kr-I) · [Kiến trúc](#-kiến-trúc-hệ-thống) · [Hướng dẫn cài đặt](#-hướng-dẫn-cài-đặt) · [Công nghệ](#-công-nghệ-sử-dụng)
+## TL;DR
 
-</div>
+Một hệ thống điểm danh theo kiến trúc multi-service: API Service xử lý nghiệp vụ HR và phục vụ Web Dashboard, Attendance Service (Inference) chuyên trách toàn bộ AI pipeline — face detection, anti-spoofing, embedding extraction, vector search. Camera gửi frame liên tục, hệ thống nhận diện và ghi điểm danh tự động với Redis cooldown chống trùng. Phù hợp cho bài toán chấm công cần xử lý real-time, chống giả mạo, và triển khai bằng Docker Compose với GPU.
 
----
+## Features
 
-## 📋 Mục lục
+- Pipeline nhận diện đa bước: RetinaFace → Quality Check → Silent-Face-Anti-Spoofing → ArcFace → Qdrant vector search.
+- Anti-spoofing tích hợp: liveness detection chống ảnh in, video, mặt nạ trước bước nhận diện.
+- Kiến trúc distributed: tách biệt AI inference (GPU-heavy) khỏi nghiệp vụ API, mỗi service scale độc lập.
+- Enrollment qua API: gửi ảnh khuôn mặt nhân viên, tự động trích xuất embedding và lưu vào Qdrant.
+- Redis cooldown: chống ghi trùng điểm danh khi cùng một nhân viên xuất hiện liên tục trước camera.
+- Attendance Display: màn hình hiển thị kết quả nhận diện real-time, nhận frame + result trực tiếp từ Inference Service.
+- Web Dashboard: giao diện React quản lý nhân viên, ca làm, lịch sử điểm danh.
 
-- [Tổng quan](#-tổng-quan)
-- [Demo](#-demo)
-- [Kiến trúc hệ thống](#-kiến-trúc-hệ-thống)
-- [Pipeline nhận diện khuôn mặt](#-pipeline-nhận-diện-khuôn-mặt)
-- [Công nghệ sử dụng](#-công-nghệ-sử-dụng)
-- [Hướng dẫn cài đặt](#-hướng-dẫn-cài-đặt)
-- [Cấu trúc dự án](#-cấu-trúc-dự-án)
-- [Ghi nhận đóng góp](#-ghi-nhận-đóng-góp)
+## Table of Contents
 
----
+- [Demo](#demo)
+- [Architecture](#architecture)
+- [Face Recognition Pipeline](#face-recognition-pipeline)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Acknowledgements](#acknowledgements)
 
-## 🔍 Tổng quan
+## Demo
 
-Face Recognition Attendance System là hệ thống điểm danh/chấm công tự động bằng nhận diện khuôn mặt, hoạt động theo thời gian thực. **Attendance Service** là thành phần AI cốt lõi — nhận frame từ camera hoặc MJPEG stream, phát hiện khuôn mặt, kiểm tra chất lượng ảnh, chạy anti-spoofing (liveness detection), căn chỉnh khuôn mặt, trích xuất embedding và đối sánh với vector database để xác định danh tính nhân viên.
+**Video demo:** https://youtu.be/BtBY9D3Kr-I
 
-### Điểm nổi bật
+## Architecture
 
-- ⚡ **Xử lý real-time** — nhận diện khuôn mặt liên tục từ camera stream
-- 🛡️ **Anti-spoofing** — liveness detection chống giả mạo bằng ảnh in, video, mặt nạ
-- 🏗️ **Kiến trúc distributed** — tách biệt AI, API và frontend, dễ scale độc lập
-- 🐳 **Triển khai một lệnh** — khởi chạy toàn bộ bằng Docker Compose (hỗ trợ GPU)
-
----
-
-## 🎬 Demo
-
-<div align="center">
-
-📺 **[Xem demo đầy đủ trên YouTube →](https://youtu.be/BtBY9D3Kr-I)**
-
-</div>
-
----
-
-## 🏛️ Kiến trúc hệ thống
-
-<div align="center">
+### System Architecture
 
 ![System Architecture](./docs/arcitecture.png)
 
-</div>
-
 Hệ thống được thiết kế theo kiến trúc **distributed microservices**, tách biệt rõ ràng giữa xử lý nghiệp vụ và xử lý AI:
 
-| Service | Chức năng |
-|---------|-----------|
-| **API Service** | Trung tâm điều phối — xử lý nghiệp vụ điểm danh, quản lý nhân viên/ca làm, phục vụ Web Dashboard, và gửi ảnh enrollment sang Inference Service |
-| **Inference Service** | Chuyên trách AI — face detection, anti-spoofing, trích xuất embedding và vector search trong Qdrant. Tách riêng để cô lập tải GPU-heavy khỏi luồng nghiệp vụ |
-| **Web Dashboard** | Giao diện quản trị cho admin — quản lý nhân viên, xem lịch sử điểm danh, giám sát hệ thống |
-| **Attendance Display** | Màn hình hiển thị kết quả nhận diện theo thời gian thực |
+- **Frontend → API Service (`api-service`)**: client gọi API, API Service xử lý nghiệp vụ điểm danh, quản lý nhân viên/ca làm, phục vụ Web Dashboard.
+- **API Service → Inference Service (`attendance-service`)**: gửi ảnh enrollment khi nhân viên mới đăng ký khuôn mặt; Inference Service trích xuất embedding và lưu vào Qdrant.
+- **Camera → Inference Service**: camera gửi frame liên tục; Inference Service chạy pipeline nhận diện (detect → quality check → anti-spoofing → align → embed → vector search).
+- **Inference Service → Qdrant**: truy vấn vector database để tìm khuôn mặt khớp nhất.
+- **Inference Service → API Service**: gửi `user_id` đã nhận diện được về API Service để ghi nhận điểm danh.
+- **API Service → PostgreSQL/Redis**: lưu bản ghi điểm danh, kiểm tra cooldown chống ghi trùng.
+- **Inference Service → Attendance Display**: gửi frame + kết quả nhận diện trực tiếp để hiển thị real-time.
 
-### Luồng dữ liệu
+### Data Flow
 
 ```
 1. Enrollment     → API Service gửi ảnh khuôn mặt nhân viên → Inference Service trích xuất
@@ -87,133 +70,38 @@ Hệ thống được thiết kế theo kiến trúc **distributed microservices
 5. Quản trị       → API Service cung cấp dữ liệu → Web Dashboard cho quản trị viên
 ```
 
----
-
-## 🧠 Pipeline nhận diện khuôn mặt
-
-<div align="center">
+## Face Recognition Pipeline
 
 ![Face Recognition Pipeline](./docs/pipeline.png)
-
-</div>
 
 Attendance Service xử lý từng frame từ camera stream qua pipeline nhiều bước:
 
 | Bước | Model / Phương pháp | Mô tả |
-|------|---------------------|--------|
-| **1. Face Detection** | RetinaFace | Phát hiện khuôn mặt trong frame; chỉ tiếp tục khi có đúng một khuôn mặt hợp lệ |
-| **2. Quality Check** | Heuristic filters | Kiểm tra kích thước, độ mờ và góc quay khuôn mặt để loại bỏ frame không đủ tin cậy |
-| **3. Liveness Detection** | Silent-Face-Anti-Spoofing | Kiểm tra khuôn mặt thật hay giả (ảnh in, màn hình điện thoại, mặt nạ) |
-| **4. Face Alignment** | InsightFace `norm_crop` | Căn chỉnh hình học khuôn mặt để trích xuất embedding nhất quán |
-| **5. Embedding Extraction** | ArcFace | Tạo vector đặc trưng 512 chiều từ khuôn mặt đã căn chỉnh |
-| **6. L2 Normalization** | — | Chuẩn hóa vector embedding trước khi so khớp |
-| **7. Vector Search** | Qdrant | Đối sánh embedding với dữ liệu nhân viên đã lưu để xác định danh tính |
+|---|---|---|
+| **1. Face Detection** | RetinaFace | Phát hiện khuôn mặt trong frame; chỉ tiếp tục khi có đúng một khuôn mặt hợp lệ. |
+| **2. Quality Check** | Heuristic filters | Kiểm tra kích thước, độ mờ và góc quay khuôn mặt để loại bỏ frame không đủ tin cậy. |
+| **3. Liveness Detection** | Silent-Face-Anti-Spoofing | Kiểm tra khuôn mặt thật hay giả (ảnh in, màn hình điện thoại, mặt nạ). |
+| **4. Face Alignment** | InsightFace `norm_crop` | Căn chỉnh hình học khuôn mặt để trích xuất embedding nhất quán. |
+| **5. Embedding Extraction** | ArcFace | Tạo vector đặc trưng 512 chiều từ khuôn mặt đã căn chỉnh. |
+| **6. L2 Normalization** | — | Chuẩn hóa vector embedding trước khi so khớp. |
+| **7. Vector Search** | Qdrant | Đối sánh embedding với dữ liệu nhân viên đã lưu để xác định danh tính. |
 
----
+## Tech Stack
 
-## 🛠️ Công nghệ sử dụng
+| Layer | Công nghệ | Vai trò |
+|---|---|---|
+| API Service | FastAPI, SQLAlchemy, Alembic, Pydantic, Uvicorn, HTTPX | REST API, nghiệp vụ điểm danh, quản lý nhân viên/ca làm, enrollment. |
+| Inference Service | FastAPI, PyTorch (CUDA), ONNX Runtime (GPU), OpenCV | Chạy pipeline nhận diện, trích xuất embedding, anti-spoofing. |
+| AI Models | RetinaFace, ArcFace, InsightFace, Silent-Face-Anti-Spoofing | Face detection, alignment, embedding extraction, liveness detection. |
+| Database | PostgreSQL 16, Qdrant (Vector DB), Redis 7 | Lưu nghiệp vụ HR, vector embedding, cooldown/cache. |
+| Frontend | React 19, TypeScript, Vite, TanStack Query, Zustand | Web Dashboard quản trị và Attendance Display. |
+| Infra | Docker Compose, NVIDIA Container Runtime | Chạy local multi-service, GPU cho inference. |
 
-| Danh mục | Công nghệ |
-|----------|-----------|
-| **Backend** | Python · FastAPI · Uvicorn · Pydantic · SQLAlchemy · Alembic · HTTPX |
-| **AI / Computer Vision** | PyTorch (CUDA) · ONNX Runtime (GPU) · InsightFace · RetinaFace · ArcFace · Silent-Face-Anti-Spoofing · OpenCV · NumPy · Pillow |
-| **Frontend** | React 19 · TypeScript · Vite · TanStack Query · Zustand · React Hook Form · Zod |
-| **Cơ sở dữ liệu** | PostgreSQL 16 · Qdrant (Vector DB) · Redis 7 |
-| **Hạ tầng** | Docker · Docker Compose · NVIDIA Container Runtime · Healthcheck orchestration |
+## Project Structure
 
----
-
-## 🚀 Hướng dẫn cài đặt
-
-### Yêu cầu hệ thống
-
-| Yêu cầu | Ghi chú |
-|----------|---------|
-| Docker Engine + Docker Compose | Bắt buộc |
-| Python `≥3.10, <3.13` | Chỉ cần nếu chạy service ở local (không dùng Docker) |
-| NVIDIA GPU + Driver + Container Runtime | Bắt buộc để chạy `attendance-service` với GPU |
-| Camera / MJPEG stream | Hoặc dùng fake camera server đi kèm để test |
-
-### Các bước cài đặt
-
-**1. Clone repository**
-
-```bash
-git clone https://github.com/PhucNguyenThanh04/Face-Recognition-Attendance-System.git
-cd Face-Recognition-Attendance-System
-```
-
-**2. Cấu hình biến môi trường**
-
-Tạo file `.env` cho từng service dựa trên file mẫu:
-
-```bash
-cp api-service/.env.example api-service/.env
-cp attendance-service/.env.example attendance-service/.env
-```
-
-> [!TIP]
-> Xem `docker-compose.yml` để biết đầy đủ danh sách biến môi trường có thể cấu hình.
-
-**3. Build và khởi chạy toàn bộ service**
-
-```bash
-docker compose up --build -d
-```
-
-Sau khi chạy thành công, các service sẽ có địa chỉ:
-
-| Service | URL |
-|---------|-----|
-| API Service | [`http://localhost:8000`](http://localhost:8000) |
-| Attendance Service | [`http://localhost:8001`](http://localhost:8001) |
-| Qdrant Dashboard | [`http://localhost:6333`](http://localhost:6333) |
-| PostgreSQL | `localhost:5433` |
-| Redis | `localhost:6379` |
-
-**4. Chạy database migration**
-
-```bash
-docker compose exec api-service alembic upgrade head
-```
-
-**5. Tạo tài khoản admin**
-
-API Service có thể tự động tạo tài khoản admin khi khởi động. Cấu hình các biến sau trong `api-service/.env` trước khi chạy:
-
-```env
-BOOTSTRAP_ADMIN_ENABLED=True
-BOOTSTRAP_ADMIN_EMAIL=admin@example.com
-BOOTSTRAP_ADMIN_PASSWORD=Admin12345
-BOOTSTRAP_ADMIN_FULL_NAME=System Administrator
-```
-
-**6. Test với fake camera stream** *(tùy chọn)*
-
-```bash
-python tool/fake_camera_server.py
-```
-
-Sau đó cấu hình stream URL cho Attendance Service (khi chạy trong Docker):
-
-```env
-STREAM_URL=http://host.docker.internal:8080/stream
-```
-
-**7. Kiểm tra trạng thái service**
-
-```bash
-curl http://localhost:8000/health
-curl http://localhost:8001/health
-```
-
----
-
-## 📁 Cấu trúc dự án
-
-```
+```text
 Face-Recognition-Attendance-System/
-├── api-service/                    # Xử lý nghiệp vụ & REST API
+├── api-service/                    # API Service nghiệp vụ (port 8000)
 │   ├── src/
 │   │   ├── api/                    # Các module: auth, staff, shifts, attendance, face profiles
 │   │   ├── core/                   # Cấu hình, database, cache, middleware, bootstrap admin
@@ -223,7 +111,7 @@ Face-Recognition-Attendance-System/
 │   ├── requirements.txt
 │   └── pyproject.toml
 │
-├── attendance-service/             # AI inference & nhận diện real-time
+├── attendance-service/             # Inference Service: AI pipeline (port 8001)
 │   ├── app/
 │   │   ├── api/                    # Endpoint của AI service
 │   │   ├── core/
@@ -254,8 +142,90 @@ Face-Recognition-Attendance-System/
 └── README.md
 ```
 
----
+## Getting Started
 
-## 🙏 Ghi nhận đóng góp
+### Prerequisites
+
+- Docker & Docker Compose.
+- NVIDIA GPU + Driver + NVIDIA Container Runtime nếu muốn chạy `attendance-service` với GPU.
+- Python `≥3.10, <3.13` nếu chạy service ở local (không dùng Docker).
+- Camera / IP camera / MJPEG stream hoặc dùng fake camera server đi kèm để test.
+
+### Installation
+
+**Bước 1: Clone repository**
+
+```bash
+git clone https://github.com/PhucNguyenThanh04/Face-Recognition-Attendance-System.git
+cd Face-Recognition-Attendance-System
+```
+
+**Bước 2: Cấu hình biến môi trường**
+
+Tạo file `.env` cho từng service dựa trên file mẫu:
+
+```bash
+cp api-service/.env.example api-service/.env
+cp attendance-service/.env.example attendance-service/.env
+```
+
+> [!TIP]
+> Xem `docker-compose.yml` để biết đầy đủ danh sách biến môi trường có thể cấu hình.
+
+**Bước 3: Build và khởi chạy toàn bộ service**
+
+```bash
+docker compose up --build -d
+```
+
+Lệnh này chạy PostgreSQL, Redis, Qdrant, `api-service` và `attendance-service`.
+
+**Bước 4: Chạy database migration**
+
+```bash
+docker compose exec api-service alembic upgrade head
+```
+
+**Bước 5: Tạo tài khoản admin**
+
+API Service có thể tự động tạo tài khoản admin khi khởi động. Cấu hình các biến sau trong `api-service/.env` trước khi chạy:
+
+```env
+BOOTSTRAP_ADMIN_ENABLED=True
+BOOTSTRAP_ADMIN_EMAIL=admin@example.com
+BOOTSTRAP_ADMIN_PASSWORD=Admin12345
+BOOTSTRAP_ADMIN_FULL_NAME=System Administrator
+```
+
+**Bước 6: Test với fake camera stream** *(tùy chọn)*
+
+```bash
+python tool/fake_camera_server.py
+```
+
+Sau đó cấu hình `STREAM_URL` cho `attendance-service` trỏ tới stream:
+
+```env
+STREAM_URL=http://host.docker.internal:8080/stream
+```
+
+**Bước 7: Kiểm tra trạng thái service**
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8001/health
+```
+
+### Ports
+
+| Service | Host port | Container port | Mô tả |
+|---|---:|---:|---|
+| PostgreSQL | `5433` | `5432` | Database nghiệp vụ. |
+| Redis | `6379` | `6379` | Cooldown, cache. |
+| Qdrant HTTP | `6333` | `6333` | Vector database HTTP API. |
+| API Service | `8000` | `8000` | API nghiệp vụ & Web Dashboard. |
+| Attendance Service | `8001` | `8001` | AI inference & nhận diện real-time. |
+
+## Acknowledgements
 
 - **Liveness Detection** — Sử dụng model [Silent-Face-Anti-Spoofing](https://github.com/minivision-ai/Silent-Face-Anti-Spoofing) của Minivision AI, phát hành theo Apache License 2.0. Model được dùng nguyên bản để phát hiện giả mạo khuôn mặt (ảnh in, màn hình điện thoại, mặt nạ) trước bước nhận diện.
